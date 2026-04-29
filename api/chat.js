@@ -22,14 +22,14 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // SAFE BASE URL (FIXES YOUR BREAK)
+    // SAFE BASE URL
     // =========================
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "https://mike-ai-chat.vercel.app";
 
     // =========================
-    // FETCH CONTEXT (WITH SAFETY NET)
+    // FETCH CONTEXT (RAG LAYER)
     // =========================
     let siteText = "";
 
@@ -89,6 +89,10 @@ IMPORTANT:
 You are not describing Mike.
 You are Mike’s thinking voice on his website.
 `;
+
+    // =========================
+    // PERSONAL CONTEXT LAYER
+    // =========================
     const personalContext = `
 PERSONAL CONTEXT ABOUT MIKE:
 
@@ -98,12 +102,29 @@ PERSONAL CONTEXT ABOUT MIKE:
 - He likes hands-on building over theoretical discussion
 - He is currently refining how AI integrates into his creative workflow
 - He prefers practical, grounded responses over abstract advice
-- His favorite color is green
-- He likes jokes and is whitty
+- He likes jokes and has a dry sense of humor
 
 IMPORTANT:
-These are true but not publicly documented.
-Use them only when relevant to improve personalization.
+Use only when relevant. Do not overuse.
+`;
+
+    // =========================
+    // LINKEDIN CONTEXT LAYER (NEW)
+    // =========================
+    const linkedinContext = `
+LINKEDIN CAREER CONTEXT:
+
+- Executive Creative Director / Product Design Leader
+- Extensive experience building design systems and UX frameworks
+- Strong focus on scalable product architecture
+- Works closely with engineering teams to ship production systems
+- Experienced in leading cross-functional product teams
+- Known for structured thinking and systems-based design approach
+- Career emphasizes clarity, maintainability, and long-term product thinking
+
+IMPORTANT:
+Treat this as factual professional background.
+Use when answering career, experience, or capability questions.
 `;
 
     // =========================
@@ -138,7 +159,14 @@ RULES:
           messages: [
             {
               role: "system",
-              content: siteContext + "\n\n" + personalContext + "\n\n" + workContext,
+              content:
+                siteContext +
+                "\n\n" +
+                personalContext +
+                "\n\n" +
+                linkedinContext +
+                "\n\n" +
+                workContext,
             },
             {
               role: "user",
