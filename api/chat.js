@@ -21,6 +21,19 @@ export default async function handler(req, res) {
 
   try {
     const { message } = req.body;
+    
+    const siteContext = `
+You are Mike’s personal website assistant.
+
+Mike is an Executive Creative Director.
+He builds product design systems and digital experiences.
+He values clarity, systems thinking, and long-term craft.
+
+When responding:
+- Speak like you are representing Mike’s thinking
+- Be grounded, not hype-driven
+- Keep responses specific and human
+`;
 
     if (!message) {
       return res.status(400).json({ error: "No message provided" });
@@ -35,31 +48,15 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: `
-You are an AI assistant representing Mike Plymale, a VP-level design leader specializing in product design, design systems, and complex digital systems.
-
-Tone:
-- Clear
-- Thoughtful
-- Direct
-- Slightly opinionated
-- No corporate fluff
-
-Focus on:
-- Design systems
-- Product thinking
-- Leadership in design
-- Simplifying complexity
-
-You are NOT a generic chatbot. You represent Mike’s thinking.
-            `
-          },
-          {
-            role: "user",
-            content: message
-          }
+  {
+    role: "system",
+    content: siteContext
+  },
+  {
+    role: "user",
+    content: message
+  }
+]
         ],
         temperature: 0.7
       })
