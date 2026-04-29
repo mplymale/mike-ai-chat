@@ -44,7 +44,29 @@ try {
       .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
       .join("\n\n");
 
-    resumeText = contextData.resume || "";
+resumeText = `
+=== IDENTITY FACTS (SOURCE OF TRUTH) ===
+
+EDUCATION:
+- School: Ringling College or Art and Design
+- Degree: Bachelor of Fine Arts
+- Location: Sarasota, FL
+
+ROLE:
+- Title: Executive Creative Director
+- Focus: Design systems, UX strategy, UX leadership
+- Minor: Photography and Motion Design
+
+SKILLS:
+- Design systems
+- UX strategy
+- Product thinking
+- Team leadership
+
+RULES:
+- Only use these facts for education and career questions
+- If something is not listed, say "not specified in available data"
+`;
   }
 } catch (err) {
   siteText = "Context fetch failed.";
@@ -109,6 +131,9 @@ PERSONAL CONTEXT ABOUT MIKE:
 - He is currently refining how AI integrates into his creative workflow
 - He prefers practical, grounded responses over abstract advice
 - He likes jokes and has a dry sense of humor
+- His favorite color is green
+- He enjoys the outdoors
+- He has lots of hobbies including, biking, climbing, scuba diving and motorsports
 
 IMPORTANT:
 Use only when relevant. Do not overuse.
