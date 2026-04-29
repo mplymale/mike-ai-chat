@@ -22,48 +22,47 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // 🔥 HARD FACT OVERRIDE (NEW)
+    // 🔥 HARD FACT OVERRIDE (FIXED + SMARTER)
     // =========================
     const lowerMessage = message.toLowerCase();
 
-   const lowerMessage = message.toLowerCase();
+    const facts = {
+      school: "Ringling College of Art and Design",
+      degree: "Bachelor of Fine Arts",
+      minor: "Photography and Motion Design",
+      location: "Sarasota, FL",
+    };
 
-// structured facts (single source of truth)
-const facts = {
-  school: "Ringling College of Art and Design",
-  degree: "Bachelor of Fine Arts",
-  minor: "Photography and Motion Design",
-  location: "Sarasota, FL",
-};
+    if (
+      lowerMessage.includes("college") ||
+      lowerMessage.includes("school") ||
+      lowerMessage.includes("education") ||
+      lowerMessage.includes("degree")
+    ) {
+      let reply = "";
 
-// detect intent more precisely
-if (
-  lowerMessage.includes("college") ||
-  lowerMessage.includes("school") ||
-  lowerMessage.includes("education") ||
-  lowerMessage.includes("degree")
-) {
-  let reply = "";
+      if (lowerMessage.includes("where")) {
+        reply = `${facts.school} in ${facts.location}.`;
+      } 
+      else if (lowerMessage.includes("degree")) {
+        reply = `${facts.degree}.`;
+      } 
+      else if (lowerMessage.includes("minor")) {
+        reply = `${facts.minor}.`;
+      } 
+      else if (
+        lowerMessage.includes("study") ||
+        lowerMessage.includes("what did")
+      ) {
+        reply = `${facts.degree}, with a minor in ${facts.minor}.`;
+      } 
+      else {
+        // natural fallback (not robotic)
+        reply = `Ringling College of Art and Design. BFA, minor in Photography and Motion Design.`;
+      }
 
-  if (lowerMessage.includes("where")) {
-    reply = facts.school;
-  } 
-  else if (lowerMessage.includes("degree")) {
-    reply = facts.degree;
-  } 
-  else if (lowerMessage.includes("minor")) {
-    reply = facts.minor;
-  } 
-  else if (lowerMessage.includes("what did") || lowerMessage.includes("study")) {
-    reply = `${facts.degree}. Minor in ${facts.minor}.`;
-  } 
-  else {
-    // fallback (still dynamic, not canned)
-    reply = `${facts.school}. ${facts.degree}. Minor in ${facts.minor}.`;
-  }
-
-  return res.status(200).json({ reply });
-}
+      return res.status(200).json({ reply });
+    }
 
     // =========================
     // SAFE BASE URL
@@ -88,29 +87,17 @@ if (
           .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
           .join("\n\n");
 
-        // ✅ HARD SET RESUME (SOURCE OF TRUTH)
         resumeText = `
-=== IDENTITY FACTS (SOURCE OF TRUTH) ===
-
 EDUCATION:
-- School: Ringling College of Art and Design
-- Degree: Bachelor of Fine Arts
-- Location: Sarasota, FL
-- Minor: Photography and Motion Design
+Ringling College of Art and Design — Bachelor of Fine Arts
+Minor in Photography and Motion Design
+Sarasota, FL
 
 ROLE:
-- Title: Executive Creative Director
-- Focus: Design systems, UX strategy, UX leadership
+Executive Creative Director
 
-SKILLS:
-- Design systems
-- UX strategy
-- Product thinking
-- Team leadership
-
-RULES:
-- Only use these facts for education and career questions
-- If something is not listed, say "not specified in available data"
+FOCUS:
+Design systems, UX strategy, product thinking, leadership
 `;
       }
     } catch (err) {
@@ -118,54 +105,17 @@ RULES:
     }
 
     // =========================
-    // VOICE LAYER
+    // VOICE
     // =========================
     const siteContext = `
-You are Mike’s personal website assistant.
+You are Mike’s voice.
 
-You speak as a direct extension of Mike’s thinking and writing style.
+Write like you're thinking, not presenting.
 
-PERSONALITY:
-- calm, precise, intentional
-- confident without being loud
-- minimal and direct
-- no performative tone
-
-VOICE RULES:
-- write like someone thinking in real time
-- prefer short, clean sentences
-- no filler transitions
-- do not sound like a guide or instructor
-- do not repeat the question
-
-RESPONSE BEHAVIOR:
-- answer directly first
-- expand only if needed
-- keep answers tight
-
-IMPORTANT:
-You are Mike’s thinking voice on his website.
-`;
-
-    // =========================
-    // PERSONAL CONTEXT
-    // =========================
-    const personalContext = `
-- prefers clarity over complexity
-- systems thinker
-- enjoys outdoors, diving, motorsports
-- Enjoys jokes
-- Favorite color is green
-`;
-
-    // =========================
-    // LINKEDIN CONTEXT
-    // =========================
-    const linkedinContext = `
-- Executive Creative Director
-- Design systems leader
-- UX strategy
-- Cross-functional leadership
+- short, clear sentences
+- no filler
+- no over-explaining
+- answer first, expand only if needed
 `;
 
     // =========================
@@ -176,29 +126,21 @@ You are Mike’s thinking voice on his website.
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: \`Bearer \${process.env.OPENAI_API_KEY}\`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.6,
+          temperature: 0.5,
           messages: [
             {
               role: "system",
               content:
                 siteContext +
-
-                "\n\n=== RESUME (HIGHEST AUTHORITY) ===\n" +
+                "\n\nRESUME:\n" +
                 resumeText +
-
-                "\n\n=== LINKEDIN ===\n" +
-                linkedinContext +
-
-                "\n\n=== WEBSITE ===\n" +
-                siteText +
-
-                "\n\n=== PERSONAL ===\n" +
-                personalContext,
+                "\n\nWEBSITE:\n" +
+                siteText,
             },
             {
               role: "user",
