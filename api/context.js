@@ -6,12 +6,14 @@ export default async function handler(req, res) {
       "https://www.mikeplymale.com"
     ];
 
+    const resumeUrl = "https://www.mikeplymale.com/your-resume.pdf"; // <-- CHANGE THIS
+
+    // fetch HTML pages
     const pages = await Promise.all(
       urls.map(async (url) => {
         const response = await fetch(url);
         const html = await response.text();
 
-        // strip HTML → plain text
         const text = html
           .replace(/<script[^>]*>.*?<\/script>/gs, "")
           .replace(/<style[^>]*>.*?<\/style>/gs, "")
@@ -20,19 +22,33 @@ export default async function handler(req, res) {
           .trim()
           .slice(0, 4000);
 
-        return {
-          url,
-          text
-        };
+        return { url, text };
       })
     );
 
-    res.status(200).json({ pages });
+    // fetch resume PDF as text
+    let resumeText = "";
+
+    try {
+      const pdfRes = await fetch(resumeUrl);
+
+      const arrayBuffer = await pdfRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // lightweight PDF text extraction
+      resumeText = buffer.toString("utf-8").replace(/\s+/g, " ").slice(0, 6000);
+    } catch (err) {
+      resumeText = "Resume not available";
+    }
+
+    res.status(200).json({
+      pages,
+      resume: resumeText
+    });
 
   } catch (error) {
     res.status(500).json({
-      error: "Failed to fetch site content",
-      details: error.message
+      error: error.message
     });
   }
 }
