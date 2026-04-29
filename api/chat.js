@@ -28,26 +28,27 @@ export default async function handler(req, res) {
       ? `https://${process.env.VERCEL_URL}`
       : "https://mike-ai-chat.vercel.app";
 
-    // =========================
-    // FETCH CONTEXT (RAG LAYER)
-    // =========================
-    let siteText = "";
+// =========================
+// FETCH CONTEXT (RAG LAYER)
+// =========================
+let siteText = "";
+let resumeText = "";
 
-    try {
-      const contextRes = await fetch(`${baseUrl}/api/context`);
+try {
+  const contextRes = await fetch(`${baseUrl}/api/context`);
 
-      if (contextRes.ok) {
-        const contextData = await contextRes.json();
+  if (contextRes.ok) {
+    const contextData = await contextRes.json();
 
-        siteText = (contextData.pages || [])
-          .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
-          .join("\n\n");
-      } else {
-        siteText = "Context unavailable (fallback mode).";
-      }
-    } catch (err) {
-      siteText = "Context fetch failed (fallback mode).";
-    }
+    siteText = (contextData.pages || [])
+      .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
+      .join("\n\n");
+
+    resumeText = contextData.resume || "";
+  }
+} catch (err) {
+  siteText = "Context fetch failed.";
+}
 
     // =========================
     // VOICE LAYER
@@ -88,6 +89,11 @@ RESPONSE BEHAVIOR:
 IMPORTANT:
 You are not describing Mike.
 You are Mike’s thinking voice on his website.
+
+IMPORTANT RULE:
+If a question relates to education, degrees, schools, or timeline:
+PRIORITIZE RESUME CONTENT ABOVE ALL OTHER SOURCES.
+
 `;
 
     // =========================
@@ -130,16 +136,18 @@ Use when answering career, experience, or capability questions.
     // =========================
     // WORK CONTEXT (RAG CONTENT)
     // =========================
-    const workContext = `
-USE THIS AS MIKE'S REAL WEBSITE CONTENT:
-
+   const workContext = `
+WEBSITE CONTENT:
 ${siteText}
 
+RESUME (HIGHEST PRIORITY FACTUAL SOURCE):
+${resumeText}
+
 RULES:
-- treat this as factual source material
-- prefer it over assumptions
-- do not repeat large chunks verbatim
-- summarize naturally in Mike’s voice
+- Resume overrides all other sources for facts like education, job history, and dates
+- If resume contains education, ALWAYS use it
+- Do not ignore resume details
+- Website content is secondary to resume for factual accuracy
 `;
 
     // =========================
