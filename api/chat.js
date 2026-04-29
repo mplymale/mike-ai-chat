@@ -48,7 +48,7 @@ resumeText = `
 === IDENTITY FACTS (SOURCE OF TRUTH) ===
 
 EDUCATION:
-- School: Ringling College or Art and Design
+- School: Ringling College of Art and Design
 - Degree: Bachelor of Fine Arts
 - Location: Sarasota, FL
 
