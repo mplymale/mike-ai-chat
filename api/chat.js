@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     }
 
     // =========================
-    // 🔥 HARD FACT OVERRIDE (FIXED + SMARTER)
+    // HARD FACT OVERRIDE
     // =========================
     const lowerMessage = message.toLowerCase();
 
@@ -43,22 +43,17 @@ module.exports = async function handler(req, res) {
 
       if (lowerMessage.includes("where")) {
         reply = `${facts.school} in ${facts.location}.`;
-      } 
-      else if (lowerMessage.includes("degree")) {
-        reply = `${facts.degree}.`;
-      } 
-      else if (lowerMessage.includes("minor")) {
-        reply = `${facts.minor}.`;
-      } 
-      else if (
+      } else if (lowerMessage.includes("degree")) {
+        reply = facts.degree;
+      } else if (lowerMessage.includes("minor")) {
+        reply = facts.minor;
+      } else if (
         lowerMessage.includes("study") ||
         lowerMessage.includes("what did")
       ) {
         reply = `${facts.degree}, with a minor in ${facts.minor}.`;
-      } 
-      else {
-        // natural fallback (not robotic)
-        reply = `Ringling College of Art and Design. BFA, minor in Photography and Motion Design.`;
+      } else {
+        reply = `${facts.school}. ${facts.degree}. Minor in ${facts.minor}.`;
       }
 
       return res.status(200).json({ reply });
@@ -72,7 +67,7 @@ module.exports = async function handler(req, res) {
       : "https://mike-ai-chat.vercel.app";
 
     // =========================
-    // FETCH CONTEXT (RAG LAYER)
+    // FETCH CONTEXT
     // =========================
     let siteText = "";
     let resumeText = "";
@@ -126,7 +121,7 @@ Write like you're thinking, not presenting.
       {
         method: "POST",
         headers: {
-          Authorization: \`Bearer \${process.env.OPENAI_API_KEY}\`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -152,6 +147,7 @@ Write like you're thinking, not presenting.
     );
 
     const data = await response.json();
+
     const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply) {
@@ -169,4 +165,4 @@ Write like you're thinking, not presenting.
       details: error.message,
     });
   }
-}
+};
