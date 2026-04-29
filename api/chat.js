@@ -149,7 +149,13 @@ RULES:
 - Do not ignore resume details
 - Website content is secondary to resume for factual accuracy
 `;
+    
+console.log("=== SITE TEXT ===");
+console.log(siteText);
 
+console.log("=== RESUME TEXT ===");
+console.log(resumeText);
+    
     // =========================
     // OPENAI REQUEST
     // =========================
