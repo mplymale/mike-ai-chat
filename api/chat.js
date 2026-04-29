@@ -22,20 +22,35 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // FETCH REAL SITE CONTEXT (RAG LAYER)
+    // SAFE BASE URL (FIXES YOUR BREAK)
     // =========================
-    const contextRes = await fetch(
-      "https://mike-ai-chat.vercel.app/api/context"
-    );
-
-    const contextData = await contextRes.json();
-
-    const siteText = (contextData.pages || [])
-      .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
-      .join("\n\n");
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://mike-ai-chat.vercel.app";
 
     // =========================
-    // VOICE LAYER (HOW MIKE SOUNDS)
+    // FETCH CONTEXT (WITH SAFETY NET)
+    // =========================
+    let siteText = "";
+
+    try {
+      const contextRes = await fetch(`${baseUrl}/api/context`);
+
+      if (contextRes.ok) {
+        const contextData = await contextRes.json();
+
+        siteText = (contextData.pages || [])
+          .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
+          .join("\n\n");
+      } else {
+        siteText = "Context unavailable (fallback mode).";
+      }
+    } catch (err) {
+      siteText = "Context fetch failed (fallback mode).";
+    }
+
+    // =========================
+    // VOICE LAYER
     // =========================
     const siteContext = `
 You are Mike’s personal website assistant.
@@ -76,7 +91,7 @@ You are Mike’s thinking voice on his website.
 `;
 
     // =========================
-    // DYNAMIC SITE KNOWLEDGE (REAL CONTENT)
+    // WORK CONTEXT (RAG CONTENT)
     // =========================
     const workContext = `
 USE THIS AS MIKE'S REAL WEBSITE CONTENT:
