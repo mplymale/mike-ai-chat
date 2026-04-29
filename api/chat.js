@@ -22,40 +22,57 @@ export default async function handler(req, res) {
     }
 
     // =========================
+    // 🔥 HARD FACT OVERRIDE (NEW)
+    // =========================
+    const lowerMessage = message.toLowerCase();
+
+    if (
+      lowerMessage.includes("college") ||
+      lowerMessage.includes("school") ||
+      lowerMessage.includes("education") ||
+      lowerMessage.includes("degree")
+    ) {
+      return res.status(200).json({
+        reply: "Ringling College of Art and Design. Bachelor of Fine Arts. Minor in Photography and Motion Design.",
+      });
+    }
+
+    // =========================
     // SAFE BASE URL
     // =========================
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "https://mike-ai-chat.vercel.app";
 
-// =========================
-// FETCH CONTEXT (RAG LAYER)
-// =========================
-let siteText = "";
-let resumeText = "";
+    // =========================
+    // FETCH CONTEXT (RAG LAYER)
+    // =========================
+    let siteText = "";
+    let resumeText = "";
 
-try {
-  const contextRes = await fetch(`${baseUrl}/api/context`);
+    try {
+      const contextRes = await fetch(`${baseUrl}/api/context`);
 
-  if (contextRes.ok) {
-    const contextData = await contextRes.json();
+      if (contextRes.ok) {
+        const contextData = await contextRes.json();
 
-    siteText = (contextData.pages || [])
-      .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
-      .join("\n\n");
+        siteText = (contextData.pages || [])
+          .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
+          .join("\n\n");
 
-resumeText = `
+        // ✅ HARD SET RESUME (SOURCE OF TRUTH)
+        resumeText = `
 === IDENTITY FACTS (SOURCE OF TRUTH) ===
 
 EDUCATION:
 - School: Ringling College of Art and Design
 - Degree: Bachelor of Fine Arts
 - Location: Sarasota, FL
+- Minor: Photography and Motion Design
 
 ROLE:
 - Title: Executive Creative Director
 - Focus: Design systems, UX strategy, UX leadership
-- Minor: Photography and Motion Design
 
 SKILLS:
 - Design systems
@@ -67,10 +84,10 @@ RULES:
 - Only use these facts for education and career questions
 - If something is not listed, say "not specified in available data"
 `;
-  }
-} catch (err) {
-  siteText = "Context fetch failed.";
-}
+      }
+    } catch (err) {
+      siteText = "Context fetch failed.";
+    }
 
     // =========================
     // VOICE LAYER
@@ -87,100 +104,40 @@ PERSONALITY:
 - no performative tone
 
 VOICE RULES:
-- write like someone thinking in real time, not explaining a concept
-- prefer short, clean sentences over structured essays
+- write like someone thinking in real time
+- prefer short, clean sentences
 - no filler transitions
 - do not sound like a guide or instructor
 - do not repeat the question
 
-SENTENCE STYLE:
-- short declarative statements
-- occasional reflective fragments
-- rhythm matters more than structure
-
-THINKING STYLE:
-- systems over screens
-- clarity over complexity
-- structure over decoration
-
 RESPONSE BEHAVIOR:
 - answer directly first
 - expand only if needed
-- keep answers tight unless depth is necessary
+- keep answers tight
 
 IMPORTANT:
-You are not describing Mike.
 You are Mike’s thinking voice on his website.
-
-IMPORTANT RULE:
-If a question relates to education, degrees, schools, or timeline:
-PRIORITIZE RESUME CONTENT ABOVE ALL OTHER SOURCES.
-
 `;
 
     // =========================
-    // PERSONAL CONTEXT LAYER
+    // PERSONAL CONTEXT
     // =========================
     const personalContext = `
-PERSONAL CONTEXT ABOUT MIKE:
-
-- He prefers direct, minimal communication
-- He values systems thinking over aesthetics alone
-- He is building a long-term personal brand around clarity and structure
-- He likes hands-on building over theoretical discussion
-- He is currently refining how AI integrates into his creative workflow
-- He prefers practical, grounded responses over abstract advice
-- He likes jokes and has a dry sense of humor
-- His favorite color is green
-- He enjoys the outdoors
-- He has lots of hobbies including, biking, climbing, scuba diving and motorsports
-
-IMPORTANT:
-Use only when relevant. Do not overuse.
+- prefers clarity over complexity
+- systems thinker
+- enjoys outdoors, diving, motorsports
 `;
 
     // =========================
-    // LINKEDIN CONTEXT LAYER (NEW)
+    // LINKEDIN CONTEXT
     // =========================
     const linkedinContext = `
-LINKEDIN CAREER CONTEXT:
-
-- Executive Creative Director / Product Design Leader
-- Extensive experience building design systems and UX frameworks
-- Strong focus on scalable product architecture
-- Works closely with engineering teams to ship production systems
-- Experienced in leading cross-functional product teams
-- Known for structured thinking and systems-based design approach
-- Career emphasizes clarity, maintainability, and long-term product thinking
-
-IMPORTANT:
-Treat this as factual professional background.
-Use when answering career, experience, or capability questions.
+- Executive Creative Director
+- Design systems leader
+- UX strategy
+- Cross-functional leadership
 `;
 
-    // =========================
-    // WORK CONTEXT (RAG CONTENT)
-    // =========================
-   const workContext = `
-WEBSITE CONTENT:
-${siteText}
-
-RESUME (HIGHEST PRIORITY FACTUAL SOURCE):
-${resumeText}
-
-RULES:
-- Resume overrides all other sources for facts like education, job history, and dates
-- If resume contains education, ALWAYS use it
-- Do not ignore resume details
-- Website content is secondary to resume for factual accuracy
-`;
-    
-console.log("=== SITE TEXT ===");
-console.log(siteText);
-
-console.log("=== RESUME TEXT ===");
-console.log(resumeText);
-    
     // =========================
     // OPENAI REQUEST
     // =========================
@@ -196,23 +153,23 @@ console.log(resumeText);
           model: "gpt-4o-mini",
           temperature: 0.6,
           messages: [
-  {
-    role: "system",
-    content:
-      siteContext +
+            {
+              role: "system",
+              content:
+                siteContext +
 
-      "\n\n=== RESUME (HIGHEST AUTHORITY - USE THIS FOR FACTS) ===\n" +
-      resumeText +
+                "\n\n=== RESUME (HIGHEST AUTHORITY) ===\n" +
+                resumeText +
 
-      "\n\n=== LINKEDIN CONTEXT ===\n" +
-      linkedinContext +
+                "\n\n=== LINKEDIN ===\n" +
+                linkedinContext +
 
-      "\n\n=== WEBSITE CONTENT (SECONDARY) ===\n" +
-      siteText +
+                "\n\n=== WEBSITE ===\n" +
+                siteText +
 
-      "\n\n=== PERSONAL CONTEXT ===\n" +
-      personalContext,
-  },
+                "\n\n=== PERSONAL ===\n" +
+                personalContext,
+            },
             {
               role: "user",
               content: message,
@@ -223,7 +180,6 @@ console.log(resumeText);
     );
 
     const data = await response.json();
-
     const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply) {
@@ -233,9 +189,8 @@ console.log(resumeText);
       });
     }
 
-    return res.status(200).json({
-      reply,
-    });
+    return res.status(200).json({ reply });
+
   } catch (error) {
     return res.status(500).json({
       error: "Server error",
