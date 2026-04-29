@@ -26,16 +26,44 @@ export default async function handler(req, res) {
     // =========================
     const lowerMessage = message.toLowerCase();
 
-    if (
-      lowerMessage.includes("college") ||
-      lowerMessage.includes("school") ||
-      lowerMessage.includes("education") ||
-      lowerMessage.includes("degree")
-    ) {
-      return res.status(200).json({
-        reply: "Ringling College of Art and Design. Bachelor of Fine Arts. Minor in Photography and Motion Design.",
-      });
-    }
+   const lowerMessage = message.toLowerCase();
+
+// structured facts (single source of truth)
+const facts = {
+  school: "Ringling College of Art and Design",
+  degree: "Bachelor of Fine Arts",
+  minor: "Photography and Motion Design",
+  location: "Sarasota, FL",
+};
+
+// detect intent more precisely
+if (
+  lowerMessage.includes("college") ||
+  lowerMessage.includes("school") ||
+  lowerMessage.includes("education") ||
+  lowerMessage.includes("degree")
+) {
+  let reply = "";
+
+  if (lowerMessage.includes("where")) {
+    reply = facts.school;
+  } 
+  else if (lowerMessage.includes("degree")) {
+    reply = facts.degree;
+  } 
+  else if (lowerMessage.includes("minor")) {
+    reply = facts.minor;
+  } 
+  else if (lowerMessage.includes("what did") || lowerMessage.includes("study")) {
+    reply = `${facts.degree}. Minor in ${facts.minor}.`;
+  } 
+  else {
+    // fallback (still dynamic, not canned)
+    reply = `${facts.school}. ${facts.degree}. Minor in ${facts.minor}.`;
+  }
+
+  return res.status(200).json({ reply });
+}
 
     // =========================
     // SAFE BASE URL
