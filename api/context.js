@@ -6,7 +6,7 @@ export default async function handler(req, res) {
       "https://www.mikeplymale.com"
     ];
 
-    const resumeUrl = "https://www.mikeplymale.com/your-resume.pdf"; // <-- CHANGE THIS
+    const resumeUrl = "https://static1.squarespace.com/static/5cb9ef28d86cc94dc1bd270f/t/69e24dca83928b01d8f24da9/1776438730529/26.04.17_Mike_Plymale_Resume.pdf"; // <-- CHANGE THIS
 
     // fetch HTML pages
     const pages = await Promise.all(
