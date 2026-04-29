@@ -41,6 +41,39 @@ When responding:
 `;
 
     // =========================
+    // WORK CONTEXT (KNOWLEDGE LAYER)
+    // =========================
+    const workContext = `
+MIKE'S WORK & DESIGN APPROACH:
+
+1. DESIGN LEADERSHIP
+- Leads product design systems and UX strategy
+- Focuses on scalable, reusable UI architecture
+- Prioritizes consistency and long-term maintainability
+
+2. SYSTEM THINKING
+- Designs systems, not isolated screens
+- Thinks in reusable patterns and components
+- Strong focus on structure over decoration
+
+3. PRODUCT PHILOSOPHY
+- Clean, minimal interfaces with strong hierarchy
+- Works closely with engineering teams for implementation fidelity
+- Balances business goals with user clarity
+
+4. CORE PRINCIPLES
+- Clarity over complexity
+- Systems over screens
+- Longevity over trends
+- Function drives form
+
+5. SIGNAL OF HIS WORK
+- Work reflects structured thinking and design maturity
+- Emphasis on scalable product ecosystems
+- Strong alignment between design and engineering
+`;
+
+    // =========================
     // OPENAI REQUEST
     // =========================
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -51,17 +84,17 @@ When responding:
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
+        temperature: 0.7,
         messages: [
           {
             role: "system",
-            content: siteContext
+            content: siteContext + "\n\n" + workContext
           },
           {
             role: "user",
             content: message
           }
-        ],
-        temperature: 0.7
+        ]
       })
     });
 
