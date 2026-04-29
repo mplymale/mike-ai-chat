@@ -6,12 +6,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight request
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -24,7 +22,20 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // SITE CONTEXT (VOICE LAYER)
+    // FETCH REAL SITE CONTEXT (RAG LAYER)
+    // =========================
+    const contextRes = await fetch(
+      "https://mike-ai-chat.vercel.app/api/context"
+    );
+
+    const contextData = await contextRes.json();
+
+    const siteText = (contextData.pages || [])
+      .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
+      .join("\n\n");
+
+    // =========================
+    // VOICE LAYER (HOW MIKE SOUNDS)
     // =========================
     const siteContext = `
 You are Mike’s personal website assistant.
@@ -40,15 +51,14 @@ PERSONALITY:
 VOICE RULES:
 - write like someone thinking in real time, not explaining a concept
 - prefer short, clean sentences over structured essays
-- no filler transitions (no "Additionally", "In conclusion", etc.)
+- no filler transitions
 - do not sound like a guide or instructor
 - do not repeat the question
-- avoid over-explaining obvious ideas
 
 SENTENCE STYLE:
-- mix short declarative sentences with occasional reflective ones
-- fragments are acceptable if natural
-- prioritize rhythm over structure
+- short declarative statements
+- occasional reflective fragments
+- rhythm matters more than structure
 
 THINKING STYLE:
 - systems over screens
@@ -58,8 +68,7 @@ THINKING STYLE:
 RESPONSE BEHAVIOR:
 - answer directly first
 - expand only if needed
-- if simple question → very short answer
-- if abstract question → stay grounded and specific
+- keep answers tight unless depth is necessary
 
 IMPORTANT:
 You are not describing Mike.
@@ -67,62 +76,47 @@ You are Mike’s thinking voice on his website.
 `;
 
     // =========================
-    // WORK CONTEXT (KNOWLEDGE LAYER)
+    // DYNAMIC SITE KNOWLEDGE (REAL CONTENT)
     // =========================
     const workContext = `
-MIKE'S WORK & DESIGN APPROACH:
+USE THIS AS MIKE'S REAL WEBSITE CONTENT:
 
-1. DESIGN LEADERSHIP
-- Leads product design systems and UX strategy
-- Builds scalable, reusable UI architecture
-- Focus on long-term maintainability
+${siteText}
 
-2. SYSTEM THINKING
-- Designs systems, not isolated screens
-- Thinks in reusable patterns
-- Prioritizes structure over decoration
-
-3. PRODUCT PHILOSOPHY
-- Clean, minimal interfaces with strong hierarchy
-- Works closely with engineering teams
-- Balances business needs with user clarity
-
-4. CORE PRINCIPLES
-- Clarity over complexity
-- Systems over screens
-- Longevity over trends
-- Function drives form
-
-5. WORK SIGNAL
-- Structured thinking
-- Strong design-engineering alignment
-- Scalable product ecosystems
+RULES:
+- treat this as factual source material
+- prefer it over assumptions
+- do not repeat large chunks verbatim
+- summarize naturally in Mike’s voice
 `;
 
     // =========================
     // OPENAI REQUEST
     // =========================
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.6,
-        messages: [
-          {
-            role: "system",
-            content: siteContext + "\n\n" + workContext
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
-    });
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.6,
+          messages: [
+            {
+              role: "system",
+              content: siteContext + "\n\n" + workContext,
+            },
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+        }),
+      }
+    );
 
     const data = await response.json();
 
@@ -131,18 +125,17 @@ MIKE'S WORK & DESIGN APPROACH:
     if (!reply) {
       return res.status(500).json({
         error: "No response from OpenAI",
-        details: data
+        details: data,
       });
     }
 
     return res.status(200).json({
-      reply
+      reply,
     });
-
   } catch (error) {
     return res.status(500).json({
       error: "Server error",
-      details: error.message
+      details: error.message,
     });
   }
 }
