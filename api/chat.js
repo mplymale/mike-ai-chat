@@ -196,17 +196,23 @@ console.log(resumeText);
           model: "gpt-4o-mini",
           temperature: 0.6,
           messages: [
-            {
-              role: "system",
-              content:
-                siteContext +
-                "\n\n" +
-                personalContext +
-                "\n\n" +
-                linkedinContext +
-                "\n\n" +
-                workContext,
-            },
+  {
+    role: "system",
+    content:
+      siteContext +
+
+      "\n\n=== RESUME (HIGHEST AUTHORITY - USE THIS FOR FACTS) ===\n" +
+      resumeText +
+
+      "\n\n=== LINKEDIN CONTEXT ===\n" +
+      linkedinContext +
+
+      "\n\n=== WEBSITE CONTENT (SECONDARY) ===\n" +
+      siteText +
+
+      "\n\n=== PERSONAL CONTEXT ===\n" +
+      personalContext,
+  },
             {
               role: "user",
               content: message,
