@@ -24,7 +24,15 @@ module.exports = async function handler(req, res) {
     const lowerMessage = message.toLowerCase();
 
     // =========================
-    // HARD FACT OVERRIDE (ONLY EDUCATION)
+    // LINKS (EDIT THESE)
+    // =========================
+    const links = {
+      linkedin: "https://www.linkedin.com/in/mikeplymale/",
+      projects: "https://www.mikeplymale.com/work"
+    };
+
+    // =========================
+    // HARD FACT OVERRIDE (education only)
     // =========================
     const facts = {
       school: "Ringling College of Art and Design",
@@ -37,12 +45,45 @@ module.exports = async function handler(req, res) {
       lowerMessage.includes("college") ||
       lowerMessage.includes("school") ||
       lowerMessage.includes("education") ||
-      lowerMessage.includes("degree") ||
-      lowerMessage.includes("study");
+      lowerMessage.includes("degree");
 
     if (isEducationQuery) {
       return res.status(200).json({
-        reply: `${facts.school}. ${facts.degree}, minor in ${facts.minor}.`,
+        reply: `${facts.school}. ${facts.degree}, minor in ${facts.minor}.`
+      });
+    }
+
+    // =========================
+    // PROJECT DETECTION
+    // =========================
+    const isProjectQuery =
+      lowerMessage.includes("project") ||
+      lowerMessage.includes("work") ||
+      lowerMessage.includes("case study") ||
+      lowerMessage.includes("portfolio");
+
+    if (isProjectQuery) {
+      return res.status(200).json({
+        reply: `I’ve worked across product design systems and UX strategy projects focused on scalable interfaces and long-term product architecture.
+
+You can explore the work here: ${links.projects}`
+      });
+    }
+
+    // =========================
+    // EXPERIENCE / BACKGROUND
+    // =========================
+    const isExperienceQuery =
+      lowerMessage.includes("experience") ||
+      lowerMessage.includes("background") ||
+      lowerMessage.includes("career") ||
+      lowerMessage.includes("resume");
+
+    if (isExperienceQuery) {
+      return res.status(200).json({
+        reply: `I work as an Executive Creative Director focused on design systems, UX strategy, and product thinking across cross-functional teams.
+
+More detail here: ${links.linkedin}`
       });
     }
 
@@ -65,19 +106,14 @@ module.exports = async function handler(req, res) {
       if (contextRes.ok) {
         const contextData = await contextRes.json();
 
-        // IMPORTANT: make chunks scannable, not noisy
         siteText = (contextData.pages || [])
-          .map(
-            (p) =>
-              `URL: ${p.url}\nCONTENT:\n${p.text}`
-          )
+          .map((p) => `URL: ${p.url}\nCONTENT:\n${p.text}`)
           .join("\n\n---\n\n");
 
         resumeText = `
 EDUCATION:
 Ringling College of Art and Design — Bachelor of Fine Arts
 Minor: Photography and Motion Design
-Location: Sarasota, FL
 
 ROLE:
 Executive Creative Director
@@ -91,54 +127,18 @@ Design systems, UX strategy, product thinking, leadership
     }
 
     // =========================
-    // SYSTEM PROMPT (REBUILT SIMPLY)
+    // SYSTEM PROMPT
     // =========================
     const systemPrompt = `
 You are Mike writing on his personal website.
 
-You are NOT an assistant.
-
-You are Mike.
-
-========================
-HOW TO ANSWER
-========================
-Use the WEBSITE CONTENT first.
-If relevant info exists there, base your answer on it.
-
-Then use RESUME for factual identity (education, roles).
-
-If both contain partial info, combine them naturally.
-
-Do NOT ignore WEBSITE CONTENT.
-
-Do NOT guess if information is clearly present in context.
-
-========================
-WEBSITE CONTENT
-========================
-${siteText}
-
-========================
-RESUME (FACTUAL)
-========================
-${resumeText}
-
-========================
-VOICE
-========================
-- calm, grounded, minimal
-- natural human tone
+Style:
+- calm, minimal, direct
 - short sentences
-- no AI language
-- no disclaimers
+- human tone
+- no AI framing
 
-========================
-BEHAVIOR
-========================
-- answer directly
-- stay grounded in provided content
-- if unsure, use closest relevant context instead of refusing
+Use provided context. Do not invent facts.
 `;
 
     // =========================
@@ -154,11 +154,16 @@ BEHAVIOR
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.5,
+          temperature: 0.6,
           messages: [
             {
               role: "system",
-              content: systemPrompt,
+              content:
+                systemPrompt +
+                "\n\nWEBSITE:\n" +
+                siteText +
+                "\n\nRESUME:\n" +
+                resumeText,
             },
             {
               role: "user",
@@ -181,6 +186,7 @@ BEHAVIOR
     }
 
     return res.status(200).json({ reply });
+
   } catch (error) {
     return res.status(500).json({
       error: "Server error",
