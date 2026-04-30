@@ -48,14 +48,17 @@ resumeText = `
 === IDENTITY FACTS (SOURCE OF TRUTH) ===
 
 EDUCATION:
-- School: Ringling College or Art and Design
+- College: Ringling College or Art and Design
 - Degree: Bachelor of Fine Arts
+- Major: Graphic and Interactive Communications
+- Minor: Photography and Motion Design
 - Location: Sarasota, FL
 
 ROLE:
 - Title: Executive Creative Director
+- Employer: Alloy Agency
 - Focus: Design systems, UX strategy, UX leadership
-- Minor: Photography and Motion Design
+
 
 SKILLS:
 - Design systems
