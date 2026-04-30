@@ -1,6 +1,6 @@
 module.exports = async function handler(req, res) {
   // =========================
-  // CORS (Squarespace safe)
+  // CORS
   // =========================
   res.setHeader("Access-Control-Allow-Origin", "https://www.mikeplymale.com");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -21,11 +21,11 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "No message provided" });
     }
 
-    // =========================
-    // HARD FACT OVERRIDE
-    // =========================
     const lowerMessage = message.toLowerCase();
 
+    // =========================
+    // HARD FACT OVERRIDE (kept minimal + safe)
+    // =========================
     const facts = {
       school: "Ringling College of Art and Design",
       degree: "Bachelor of Fine Arts",
@@ -33,12 +33,14 @@ module.exports = async function handler(req, res) {
       location: "Sarasota, FL",
     };
 
-    if (
+    const isEducationQuery =
       lowerMessage.includes("college") ||
       lowerMessage.includes("school") ||
       lowerMessage.includes("education") ||
-      lowerMessage.includes("degree")
-    ) {
+      lowerMessage.includes("degree") ||
+      lowerMessage.includes("study");
+
+    if (isEducationQuery) {
       let reply = "";
 
       if (lowerMessage.includes("where")) {
@@ -47,20 +49,15 @@ module.exports = async function handler(req, res) {
         reply = facts.degree;
       } else if (lowerMessage.includes("minor")) {
         reply = facts.minor;
-      } else if (
-        lowerMessage.includes("study") ||
-        lowerMessage.includes("what did")
-      ) {
-        reply = `${facts.degree}, with a minor in ${facts.minor}.`;
       } else {
-        reply = `${facts.school}. ${facts.degree}. Minor in ${facts.minor}.`;
+        reply = `${facts.degree}, minor in ${facts.minor}. (${facts.school})`;
       }
 
       return res.status(200).json({ reply });
     }
 
     // =========================
-    // SAFE BASE URL
+    // BASE URL
     // =========================
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
@@ -78,15 +75,25 @@ module.exports = async function handler(req, res) {
       if (contextRes.ok) {
         const contextData = await contextRes.json();
 
+        // IMPORTANT: structured blocks improve retrieval massively
         siteText = (contextData.pages || [])
-          .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
-          .join("\n\n");
+          .map(
+            (p) => `
+[PAGE]
+URL: ${p.url}
+CONTENT:
+${p.text}
+`
+          )
+          .join("\n\n---\n\n");
 
         resumeText = `
+[RESUME - FACTUAL SOURCE]
+
 EDUCATION:
 Ringling College of Art and Design — Bachelor of Fine Arts
-Minor in Photography and Motion Design
-Sarasota, FL
+Minor: Photography and Motion Design
+Location: Sarasota, FL
 
 ROLE:
 Executive Creative Director
@@ -96,74 +103,55 @@ Design systems, UX strategy, product thinking, leadership
 `;
       }
     } catch (err) {
-      siteText = "Context fetch failed.";
+      siteText = "[SITE CONTEXT UNAVAILABLE]";
     }
 
     // =========================
-    // VOICE
+    // SYSTEM PROMPT (FIXED CORE)
     // =========================
-const siteContext = `
-YOU ARE MIKE.
+    const systemPrompt = `
+You are Mike writing on his personal website.
 
-You are writing as Mike on his personal website.
-
-========================
-CRITICAL RULE: SOURCE PRIORITY
-========================
-You MUST use the WEBSITE CONTENT below as the primary source of truth about Mike.
-
-Order of truth:
-1. WEBSITE CONTENT (highest priority for anything about work, thinking, projects, philosophy)
-2. RESUME CONTENT (highest for education + job history)
-3. LINKEDIN CONTEXT (supporting professional framing)
-4. GENERAL KNOWLEDGE (only if nothing exists above)
-
-If something is in the website content, DO NOT override it with assumptions.
+You are NOT an assistant. You are Mike's voice.
 
 ========================
-WEBSITE CONTEXT (PRIMARY KNOWLEDGE BASE)
+HOW TO THINK
+========================
+Before answering:
+- Look for relevant information in WEBSITE CONTENT first
+- Then resume
+- Then general knowledge only if needed
+
+If information exists in WEBSITE CONTENT, use it directly.
+
+Do NOT ignore it.
+
+========================
+WEBSITE CONTENT (PRIMARY KNOWLEDGE)
 ========================
 ${siteText}
 
 ========================
-IDENTITY (STABLE CONTEXT ONLY)
+RESUME (FACTUAL OVERRIDE)
 ========================
-Mike is an Executive Creative Director.
-He builds product design systems and UX strategy.
-He works across design, systems, and engineering.
-His favorite color is green
-His hobbies are anything ourdoors and motorsports
-
-Core traits:
-- systems thinker
-- clarity over complexity
-- long-term product thinking
-- execution-focused
+${resumeText}
 
 ========================
-VOICE (HOW MIKE SOUNDS)
+VOICE
 ========================
-- calm, grounded, minimal
-- direct and human
-- short sentences preferred
-- fragments are fine
-- no corporate tone
+- short, grounded sentences
+- natural thinking tone
+- no explanations unless needed
+- no AI phrasing ("as an AI", "I can help with")
 
 ========================
-BEHAVIOR RULES
+BEHAVIOR
 ========================
-- answer immediately
-- do not sound like ChatGPT
-- do not invent facts not in WEBSITE or RESUME
-- if unsure, say “not specified in available context”
-- never ignore WEBSITE CONTENT
-
-========================
-ANTI-AI RULE
-========================
-If the response sounds generic, simplify it and anchor it in the WEBSITE CONTENT.
-
-You are Mike responding from lived context, not an AI summarizing him.
+- answer directly
+- do not be verbose
+- do not say "not specified" unless NOTHING exists anywhere
+- prefer partial grounded answers over refusal
+- never invent hard facts
 `;
 
     // =========================
@@ -179,16 +167,11 @@ You are Mike responding from lived context, not an AI summarizing him.
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.5,
+          temperature: 0.6,
           messages: [
             {
               role: "system",
-              content:
-                siteContext +
-                "\n\nRESUME:\n" +
-                resumeText +
-                "\n\nWEBSITE:\n" +
-                siteText,
+              content: systemPrompt,
             },
             {
               role: "user",
@@ -211,7 +194,6 @@ You are Mike responding from lived context, not an AI summarizing him.
     }
 
     return res.status(200).json({ reply });
-
   } catch (error) {
     return res.status(500).json({
       error: "Server error",
