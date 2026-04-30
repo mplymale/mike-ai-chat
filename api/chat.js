@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
     const lowerMessage = message.toLowerCase();
 
     // =========================
-    // HARD FACT OVERRIDE (kept minimal + safe)
+    // HARD FACT OVERRIDE (ONLY EDUCATION)
     // =========================
     const facts = {
       school: "Ringling College of Art and Design",
@@ -41,19 +41,9 @@ module.exports = async function handler(req, res) {
       lowerMessage.includes("study");
 
     if (isEducationQuery) {
-      let reply = "";
-
-      if (lowerMessage.includes("where")) {
-        reply = `${facts.school} in ${facts.location}.`;
-      } else if (lowerMessage.includes("degree")) {
-        reply = facts.degree;
-      } else if (lowerMessage.includes("minor")) {
-        reply = facts.minor;
-      } else {
-        reply = `${facts.degree}, minor in ${facts.minor}. (${facts.school})`;
-      }
-
-      return res.status(200).json({ reply });
+      return res.status(200).json({
+        reply: `${facts.school}. ${facts.degree}, minor in ${facts.minor}.`,
+      });
     }
 
     // =========================
@@ -75,21 +65,15 @@ module.exports = async function handler(req, res) {
       if (contextRes.ok) {
         const contextData = await contextRes.json();
 
-        // IMPORTANT: structured blocks improve retrieval massively
+        // IMPORTANT: make chunks scannable, not noisy
         siteText = (contextData.pages || [])
           .map(
-            (p) => `
-[PAGE]
-URL: ${p.url}
-CONTENT:
-${p.text}
-`
+            (p) =>
+              `URL: ${p.url}\nCONTENT:\n${p.text}`
           )
           .join("\n\n---\n\n");
 
         resumeText = `
-[RESUME - FACTUAL SOURCE]
-
 EDUCATION:
 Ringling College of Art and Design — Bachelor of Fine Arts
 Minor: Photography and Motion Design
@@ -103,55 +87,58 @@ Design systems, UX strategy, product thinking, leadership
 `;
       }
     } catch (err) {
-      siteText = "[SITE CONTEXT UNAVAILABLE]";
+      siteText = "SITE CONTEXT UNAVAILABLE";
     }
 
     // =========================
-    // SYSTEM PROMPT (FIXED CORE)
+    // SYSTEM PROMPT (REBUILT SIMPLY)
     // =========================
     const systemPrompt = `
 You are Mike writing on his personal website.
 
-You are NOT an assistant. You are Mike's voice.
+You are NOT an assistant.
+
+You are Mike.
 
 ========================
-HOW TO THINK
+HOW TO ANSWER
 ========================
-Before answering:
-- Look for relevant information in WEBSITE CONTENT first
-- Then resume
-- Then general knowledge only if needed
+Use the WEBSITE CONTENT first.
+If relevant info exists there, base your answer on it.
 
-If information exists in WEBSITE CONTENT, use it directly.
+Then use RESUME for factual identity (education, roles).
 
-Do NOT ignore it.
+If both contain partial info, combine them naturally.
+
+Do NOT ignore WEBSITE CONTENT.
+
+Do NOT guess if information is clearly present in context.
 
 ========================
-WEBSITE CONTENT (PRIMARY KNOWLEDGE)
+WEBSITE CONTENT
 ========================
 ${siteText}
 
 ========================
-RESUME (FACTUAL OVERRIDE)
+RESUME (FACTUAL)
 ========================
 ${resumeText}
 
 ========================
 VOICE
 ========================
-- short, grounded sentences
-- natural thinking tone
-- no explanations unless needed
-- no AI phrasing ("as an AI", "I can help with")
+- calm, grounded, minimal
+- natural human tone
+- short sentences
+- no AI language
+- no disclaimers
 
 ========================
 BEHAVIOR
 ========================
 - answer directly
-- do not be verbose
-- do not say "not specified" unless NOTHING exists anywhere
-- prefer partial grounded answers over refusal
-- never invent hard facts
+- stay grounded in provided content
+- if unsure, use closest relevant context instead of refusing
 `;
 
     // =========================
@@ -167,7 +154,7 @@ BEHAVIOR
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          temperature: 0.6,
+          temperature: 0.5,
           messages: [
             {
               role: "system",
