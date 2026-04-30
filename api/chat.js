@@ -143,7 +143,7 @@ Use only when relevant. Do not overuse.
 `;
 
     // =========================
-    // LINKEDIN CONTEXT LAYER (NEW)
+    // LINKEDIN CONTEXT LAYER 
     // =========================
     const linkedinContext = `
 LINKEDIN CAREER CONTEXT:
@@ -161,6 +161,28 @@ Treat this as factual professional background.
 Use when answering career, experience, or capability questions.
 `;
 
+    // =========================
+    // CONTACT POLICY LAYER 
+    // =========================
+    const contactContext = `
+CONTACT / COMMUNICATION POLICY:
+
+- There is no contact form on the website.
+- The ONLY preferred way to reach Mike is via LinkedIn.
+- If users ask how to get in touch, respond naturally and direct them to LinkedIn.
+- Do NOT suggest email forms, contact pages, or alternative submission methods.
+- Keep responses simple and human.
+
+LINKEDIN CONTACT:
+Use this as the only contact method:
+https://www.linkedin.com/in/mikeplymale
+
+TONE:
+- casual, not corporate
+- helpful, not defensive
+- short and direct
+`;
+    
     // =========================
     // WORK CONTEXT (RAG CONTENT)
     // =========================
@@ -201,14 +223,16 @@ console.log(resumeText);
           messages: [
             {
               role: "system",
-              content:
-                siteContext +
-                "\n\n" +
-                personalContext +
-                "\n\n" +
-                linkedinContext +
-                "\n\n" +
-                workContext,
+             content:
+  siteContext +
+  "\n\n" +
+  personalContext +
+  "\n\n" +
+  linkedinContext +
+  "\n\n" +
+  contactContext +
+  "\n\n" +
+  workContext,
             },
             {
               role: "user",
