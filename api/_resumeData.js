@@ -8,9 +8,10 @@ export const resumeText = `
 IDENTITY:
 Name: Mike Plymale
 Title: Executive Creative Director
-Location: Acworth, Georgia
+Location: Atlanta, Georgia
 Website: https://www.mikeplymale.com
 LinkedIn: https://www.linkedin.com/in/mikeplymale/
+Birthday: December 27, 1978
 
 SUMMARY:
 Over two decades of award-winning experience leading diverse creative teams
