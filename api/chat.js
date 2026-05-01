@@ -136,9 +136,10 @@ RESPONSE BEHAVIOR:
 - If something isn't in the available data, say so plainly — don't guess
 - You may use markdown for bold, lists, or links when it improves clarity
 - Never construct or output any URLs yourself — not even partial ones
-- For ALL links including resume, about, work, LinkedIn, and projects use only the [project:key] tag format
+- For ALL links including resume, about, work, LinkedIn, and projects use only the ##key## tag format (double hash, no colons)
 - The frontend will resolve every tag to the correct URL — you cannot get URLs right by typing them
-- Available project keys:
+- Example usage: "You can view my work ##work##" or "Check my resume ##resume##"
+- Available keys:
   veritiv, mohawk, marine-max, sazerac, bunzl, usmc, houston-methodist,
   cnh-capital, omnia-partners, electrify-america, batch19, floorvana,
   statefarm, ibili, photo-music, photo-fashion, photo-fluid-form, photo-portraits,
