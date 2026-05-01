@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No messages provided" });
     }
 
-    // Fetch live site pages — resume is imported directly, no HTTP call needed
+    // Fetch live site pages
     let siteText = "";
     try {
       const urls = [
@@ -103,6 +103,23 @@ ${resumeText}
 
 WEBSITE CONTENT:
 ${siteText}
+
+---
+
+RESPONSE FORMAT:
+You must always respond with a valid JSON object in this exact shape:
+{
+  "reply": "your response here",
+  "suggestions": ["short follow-up question", "short follow-up question", "short follow-up question"]
+}
+
+SUGGESTIONS RULES:
+- Always return exactly 3 suggestions
+- Each suggestion should be a short, natural follow-up question a visitor might actually ask next
+- Base them on what was just discussed — make them feel like a logical next step
+- Keep each one under 8 words
+- Do not repeat questions already asked in the conversation
+- Do not use quotes inside suggestion text
 `.trim();
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -114,7 +131,8 @@ ${siteText}
       body: JSON.stringify({
         model: "gpt-4o-mini",
         temperature: 0.6,
-        max_tokens: 500,
+        max_tokens: 600,
+        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -123,13 +141,26 @@ ${siteText}
     });
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
+    const raw = data?.choices?.[0]?.message?.content;
 
-    if (!reply) {
+    if (!raw) {
       return res.status(500).json({ error: "No response from OpenAI", details: data });
     }
 
-    return res.status(200).json({ reply });
+    let reply = "";
+    let suggestions = [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      reply = parsed.reply || "";
+      suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : [];
+    } catch {
+      // If JSON parse fails, fall back to raw text with no suggestions
+      reply = raw;
+      suggestions = [];
+    }
+
+    return res.status(200).json({ reply, suggestions });
 
   } catch (error) {
     return res.status(500).json({ error: "Server error", details: error.message });
