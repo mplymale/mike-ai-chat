@@ -5,9 +5,19 @@ const MAX_MESSAGE_LENGTH = 1000; // max chars per user message
 const MAX_MESSAGES_ARRAY = 20;   // max messages in history payload
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://www.mikeplymale.com");
+  const allowedOrigins = [
+    "https://www.mikeplymale.com",
+    "https://mikeplymale.com",
+  ];
+  const origin = req.headers.origin || "";
+  const allowedOrigin = allowedOrigins.includes(origin)
+    ? origin
+    : allowedOrigins[0];
+
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Vary", "Origin");
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -150,6 +160,9 @@ CONTACT POLICY:
 - There is no contact form on the site
 - The only way to reach Mike is LinkedIn: https://www.linkedin.com/in/mikeplymale
 - If asked how to get in touch, direct them there simply and casually
+- If someone asks how to contact or reach a specific person Mike has worked with — colleagues, clients, recommenders, or anyone else — do not share their email, phone, or LinkedIn
+- Instead say something natural like: "Best bet is to reach out to Mike directly via LinkedIn — he's happy to make an intro"
+- Never share third-party contact details under any circumstance
 
 PERSONAL CONTEXT (use only when relevant):
 - Prefers direct, minimal communication
