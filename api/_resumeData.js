@@ -147,4 +147,54 @@ AWARDS:
   - Heidelberg USA Award — Gevity Annual Report
   - The Best of Ringling — Expressive Typography Book
   - Embracing Our Differences — Exhibition Design
-`.trim();
+
+RECOMMENDATIONS FROM COLLEAGUES:
+
+Ali Mansfield, AI Innovation Leader (worked together at Sagepath Reply, 2024):
+"Talent like Mike doesn't come around often. He has an outstanding ability to read between the lines and truly understand both the client and customer needs. His design and UX solutions not only hit the mark, they are detail-oriented and often show a level of innovative thinking that further sets his clients up for long-term success. Mike is both creative and strategic with an infectious enthusiasm that pushes the boundaries."
+
+Dylan Goldman, Sr. SEO & GEO Manager (worked together at Sagepath Reply, 2024):
+"Mike possesses a remarkable strategic vision which he seamlessly integrates into every project. His ability to foresee user needs and market trends allowed us to create forward-thinking design that not only met but exceeded client expectations. His user research skills are particularly noteworthy — Mike has a knack for gathering and interpreting user data to inform design decisions. He is an invaluable asset to any team."
+
+Taylor Eaton-Hall, Senior Engagement Manager (worked together at Sagepath Reply, 2024):
+"Mike is innovative in his thinking, comes to the table with more than one option for solutions and ideas, and is a phenomenal collaborator. He keeps a strategic lens on his work while also being able to thoroughly explain his rationale and get in the weeds with his team when needed. He's forward-thinking and keeps a pulse on industry trends."
+
+Sean McKaharay, AEM Technical Architect (worked together at Sagepath Reply, 2024):
+"Mike consistently demonstrated exceptional leadership and creativity. His ability to inspire and guide his team resulted in innovative and high-quality designs that exceeded client expectations. His collaborative approach and strong communication skills made him an invaluable asset."
+
+Maddie Harris, Senior UX Designer (reported directly to Mike, 2024):
+"Mike is a fantastic leader and design director. As my direct supervisor, he was a fantastic mentor with a passion for continued learning that inspired me and greatly contributed to my growth in UX. He has great expertise across several design disciplines — graphic design, UX, photography, and videography — that make him a versatile team player. He provides both a creative and realistic lens to any project."
+
+Mike Warin, Associate Partner at Sagepath Reply (2024):
+"Mike is one of the most talented people I have had the pleasure of working with. He turns the complex into a beautiful experience for the end user. He goes beyond aesthetics, acting as a thought leader who elevates design's role to create value and drive ROI. He fosters a collaborative environment and crafts best-in-class solutions. He is loved by both clients and coworkers."
+
+Katie Davis, Director at Comwrap Reply (2024):
+"Mike consistently turned ideas into compelling visual stories, delivering high quality work that exceeds expectations. He brings a strategic lens to any conversation while providing both a forward-thinking and realistic approach."
+
+Michael Adamson, Creative Director (worked together, 2020):
+"Mike is the kind of creative you want on your staff not only because of his creative and design skills, but his breadth of skill — ranging from graphic design to photography to videography — and his ability to grasp business needs and translate them. I was always impressed how quickly work came together and how few revisions his work needed. He just got it."
+
+Rachel Coleman, Project Manager (worked together, 2019):
+"Mike is one of the most hardworking Creative Directors I've had the pleasure to work with. His knowledge of seeing the larger vision for clients has not only sold more work but helped the team learn the process along the way. He truly listens to client needs and brings back multiple solutions that exceed expectations."
+
+Tor Gundersen, Senior Strategic Development Manager at Adobe (worked together, 2019):
+"Mike can see the big picture of every engagement and establish a vision not only to satisfy the current need but also to propel clients into the future. He combines energetic design thinking with a pragmatism towards execution that enables successful delivery every time. He has this desire to do things right, and do them well."
+
+Bryan Moss, Executive Creative Director (managed Mike directly, 2013):
+"With an unmatched passion for design and relentless work ethic, he's the one always pushing with every project to top the last. His masterful design sense, unique style, and critical thinking come through in his work. He's an artist and a designer at heart, but also a leader who pushes and mentors those around him."
+
+Thurston Yates, Creative Leader (managed Mike directly, 2012):
+"Multi-talented. Thorough. Reliable. I am always amazed at his talent, resourcefulness, and willingness to mentor others to ensure the work is beautifully executed. His sense of humor, humility, and resolve to raise the work to a higher standard inspires and propels those around him to do better."
+
+Oskar Kaszubski, Global eCommerce Leader (managed Mike directly, 2007):
+"Hands down the best art director I have worked with. Incredible attention to detail, while being able to output work under very tight deadlines. Most importantly, he is a great mentor to his design team. He brought his team to a whole new level in terms of creativity and speed."
+
+KEY THEMES FROM ALL RECOMMENDATIONS:
+- Consistently exceeds client expectations
+- Strategic thinker who connects design to business outcomes
+- Strong mentor and team leader
+- Versatile across disciplines — UX, brand, photography, motion, systems
+- Collaborative, communicative, easy to work with
+- Delivers high quality work efficiently with few revisions
+- Trusted by both clients and colleagues
+- Elevates everyone around him`.trim();
