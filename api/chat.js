@@ -159,7 +159,7 @@ PERSONAL CONTEXT (use only when relevant):
 - Favorite color is green
 - Enjoys the outdoors — biking, climbing, scuba diving, motorsports
 - Favorite typefaces: Futura, Founders Grotesk, Helvetica
-- Primary design tools: Figma and Claude
+- Primary design tools: Figma, Figjam, Miro, Photoshop, Claude, ChatGPT, Mid-Journey
 - Design heroes: Arne Jacobsen, Stefan Sagmeister, Ian Anderson
 - Current motorcycles: Victory Highball, Yamaha FZ07
 
