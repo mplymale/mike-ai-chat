@@ -4,6 +4,35 @@ import { isRateLimited } from "./_rateLimiter.js";
 const MAX_MESSAGE_LENGTH = 1000; // max chars per user message
 const MAX_MESSAGES_ARRAY = 20;   // max messages in history payload
 
+// =========================
+// UPSTASH LOGGER
+// =========================
+async function logQuestion(question, ip) {
+  try {
+    const url   = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
+    if (!url || !token) return;
+
+    const entry = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      question,
+      ip,
+    });
+
+    // Push to a Redis list — newest first
+    await fetch(`${url}/lpush/chat-questions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([entry]),
+    });
+  } catch (err) {
+    console.error("Logging failed:", err.message);
+  }
+}
+
 export default async function handler(req, res) {
   const allowedOrigins = [
     "https://www.mikeplymale.com",
@@ -68,12 +97,11 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // ANALYTICS
-    // View in Vercel dashboard > Logs
+    // LOG QUESTION
     // =========================
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "user") {
-      console.log(`[QUESTION] ${new Date().toISOString()} — "${lastMessage.content}"`);
+      logQuestion(lastMessage.content, ip); // fire and forget
     }
 
     // =========================
