@@ -116,14 +116,22 @@ EDUCATION:
 CERTIFICATIONS:
   - CUA – Certified Usability Analyst (HFI)
   - Webflow Certification
-  - Adobe Premiere Pro (Stackskills)
+  - Adobe Premiere Pro Masterclass (Stackskills)
   - Adobe Photoshop Masterclass (Stackskills)
   - OWD – Open Water Diver (PADI)
+  - NITROX Enriched Air Diver (PADI)
+  - Advanced Open water diver (PADI)
 
 SKILLS:
+  - Design Leadership & Vision
+  - Business & Product Strategy
+  - Cross-functional Influence
+  - Customer-centric Design & Innovation
+  - Team Building & Mentorship
+  - Design Pperations
+  - UX Vision & Strategy
   - Creative & Design Direction
   - Art Direction
-  - UX Strategy
   - Photography & Post Production
   - Cinematography & Editing
   - Motion Design & Theory
