@@ -149,6 +149,10 @@ PERSONAL CONTEXT (use only when relevant):
 - Dry sense of humor
 - Favorite color is green
 - Enjoys the outdoors — biking, climbing, scuba diving, motorsports
+- Favorite typefaces: Futura, Founders Grotesk, Helvetica
+- Primary design tools: Figma and Claude
+- Design heroes: Arne Jacobsen, Stefan Sagmeister, Ian Anderson
+- Current motorcycles: Victory Highball, Yamaha FZ07
 
 FACTUAL SOURCES (priority order):
 1. RESUME — highest priority for all career, education, and credential facts
