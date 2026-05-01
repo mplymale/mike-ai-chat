@@ -176,16 +176,7 @@ ${siteText}
 `.trim();
 
     // =========================
-    // SSE HEADERS
-    // =========================
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no");
-    res.flushHeaders();
-
-    // =========================
-    // STREAM REPLY (gpt-4o)
+    // OPENAI REQUEST (non-streaming)
     // =========================
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -197,7 +188,6 @@ ${siteText}
         model: "gpt-4o",
         temperature: 0.6,
         max_tokens: 500,
-        stream: true,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -205,29 +195,11 @@ ${siteText}
       }),
     });
 
-    const reader = openaiRes.body.getReader();
-    const decoder = new TextDecoder();
-    let fullReply = "";
+    const openaiData = await openaiRes.json();
+    const fullReply = openaiData?.choices?.[0]?.message?.content || "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
-
-      for (const line of lines) {
-        const data = line.slice(6);
-        if (data === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(data);
-          const token = parsed.choices[0]?.delta?.content || "";
-          if (token) {
-            fullReply += token;
-            res.write(`data: ${JSON.stringify({ token })}\n\n`);
-          }
-        } catch {}
-      }
+    if (!fullReply) {
+      return res.status(500).json({ error: "No response from OpenAI", details: openaiData });
     }
 
     // =========================
@@ -263,8 +235,7 @@ ${siteText}
       console.error("Suggestions failed:", err.message);
     }
 
-    res.write(`data: ${JSON.stringify({ done: true, suggestions })}\n\n`);
-    res.end();
+    return res.status(200).json({ reply: fullReply, suggestions });
 
   } catch (error) {
     console.error("Chat handler error:", error.message);
