@@ -5,7 +5,7 @@
 const requests = new Map();
 
 const WINDOW_MS    = 60 * 1000; // 1 minute window
-const MAX_REQUESTS = 10;        // max requests per IP per window
+const MAX_REQUESTS = 20;        // max requests per IP per window
 
 export function isRateLimited(ip) {
   const now   = Date.now();
