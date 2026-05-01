@@ -27,21 +27,28 @@ export default async function handler(req, res) {
     const data = await response.json();
     const entries = (data.result || []).map(e => {
       try {
-        const parsed = typeof e === "string" ? JSON.parse(e) : e;
+        // Data is double-encoded: e is an array string containing a JSON string
+        const outer = typeof e === "string" ? JSON.parse(e) : e;
+        const inner = Array.isArray(outer) ? outer[0] : outer;
+        const parsed = typeof inner === "string" ? JSON.parse(inner) : inner;
         return parsed;
       } catch {
-        return { question: e, timestamp: "", ip: "" };
+        return { question: String(e), timestamp: "", ip: "" };
       }
     });
 
     // Return as clean HTML for easy reading in browser
-    const rows = entries.map(e => `
+    const rows = entries.map(e => {
+      const ts = e.timestamp ? new Date(e.timestamp).toLocaleString("en-US", {
+        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+      }) : "";
+      return `
       <tr>
-        <td style="color:#aaa;white-space:nowrap;padding:6px 12px;">${e.timestamp || ""}</td>
-        <td style="padding:6px 12px;">${e.question || e.raw || JSON.stringify(e)}</td>
-        <td style="color:#666;padding:6px 12px;">${e.ip || ""}</td>
+        <td style="color:#aaa;white-space:nowrap;padding:8px 16px;">${ts}</td>
+        <td style="padding:8px 16px;">${e.question || ""}</td>
+        <td style="color:#555;padding:8px 16px;font-size:12px;">${e.ip || ""}</td>
       </tr>
-    `).join("");
+    `}).join("");
 
     const html = `
       <!DOCTYPE html>
