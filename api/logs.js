@@ -26,15 +26,19 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     const entries = (data.result || []).map(e => {
-      try { return JSON.parse(e); }
-      catch { return { raw: e }; }
+      try {
+        const parsed = typeof e === "string" ? JSON.parse(e) : e;
+        return parsed;
+      } catch {
+        return { question: e, timestamp: "", ip: "" };
+      }
     });
 
     // Return as clean HTML for easy reading in browser
     const rows = entries.map(e => `
       <tr>
         <td style="color:#aaa;white-space:nowrap;padding:6px 12px;">${e.timestamp || ""}</td>
-        <td style="padding:6px 12px;">${e.question || e.raw || ""}</td>
+        <td style="padding:6px 12px;">${e.question || e.raw || JSON.stringify(e)}</td>
         <td style="color:#666;padding:6px 12px;">${e.ip || ""}</td>
       </tr>
     `).join("");
