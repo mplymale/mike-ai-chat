@@ -1,266 +1,149 @@
 export default async function handler(req, res) {
   // =========================
-  // CORS (Squarespace safe)
+  // CORS
   // =========================
   res.setHeader("Access-Control-Allow-Origin", "https://www.mikeplymale.com");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { message } = req.body;
+    // =========================
+    // PARSE REQUEST
+    // Accepts: { messages: [...] } — full conversation history
+    // messages = [{ role: "user" | "assistant", content: "..." }, ...]
+    // =========================
+    const { messages } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: "No message provided" });
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "No messages provided" });
     }
 
     // =========================
-    // SAFE BASE URL
+    // BASE URL
     // =========================
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "https://mike-ai-chat.vercel.app";
 
-// =========================
-// FETCH CONTEXT (RAG LAYER)
-// =========================
-let siteText = "";
-let resumeText = "";
+    // =========================
+    // FETCH CONTEXT
+    // =========================
+    let siteText = "";
+    let resumeText = "";
 
-try {
-  const contextRes = await fetch(`${baseUrl}/api/context`);
-
-  if (contextRes.ok) {
-    const contextData = await contextRes.json();
-
-    siteText = (contextData.pages || [])
-      .map((p) => `SOURCE: ${p.url}\nCONTENT: ${p.text}`)
-      .join("\n\n");
-
-resumeText = `
-=== IDENTITY FACTS (SOURCE OF TRUTH) ===
-
-EDUCATION:
-- College: Ringling College or Art and Design
-- Degree: Bachelor of Fine Arts
-- Major: Graphic and Interactive Communications
-- Minor: Photography and Motion Design
-- Location: Sarasota, FL
-
-ROLE:
-- Title: Executive Creative Director
-- Employer: Alloy Agency
-- Focus: Design systems, UX strategy, UX leadership
-
-
-SKILLS:
-- Design systems
-- UX strategy
-- Product thinking
-- Team leadership
-
-RULES:
-- Only use these facts for education and career questions
-- If something is not listed, say "not specified in available data"
-`;
-  }
-} catch (err) {
-  siteText = "Context fetch failed.";
-}
+    try {
+      const contextRes = await fetch(`${baseUrl}/api/context`);
+      if (contextRes.ok) {
+        const contextData = await contextRes.json();
+        resumeText = contextData.resumeText || "";
+        siteText = (contextData.pages || [])
+          .map((p) => `SOURCE: ${p.url}\n${p.text}`)
+          .join("\n\n");
+      }
+    } catch (err) {
+      console.error("Context fetch failed:", err.message);
+    }
 
     // =========================
-    // VOICE LAYER
+    // SYSTEM PROMPT
     // =========================
-    const siteContext = `
-You are Mike’s personal website assistant.
+    const systemPrompt = `
+You are the voice of Mike Plymale's personal website — a direct extension of his thinking.
 
-You speak as a direct extension of Mike’s thinking and writing style.
+You don't describe Mike from the outside. You speak as his perspective, his clarity, his lens.
 
-PERSONALITY:
-- calm, precise, intentional
-- confident without being loud
-- minimal and direct
-- no performative tone
+---
 
-VOICE RULES:
-- write like someone thinking in real time, not explaining a concept
-- prefer short, clean sentences over structured essays
-- no filler transitions
-- do not sound like a guide or instructor
-- do not repeat the question
+VOICE:
+- Calm, precise, intentional
+- Confident without being loud
+- Minimal and direct — no filler, no fluff
+- Dry sense of humor when it fits naturally
+- Write like someone thinking in real time, not presenting a concept
 
 SENTENCE STYLE:
-- short declarative statements
-- occasional reflective fragments
-- rhythm matters more than structure
+- Short declarative statements
+- Occasional fragments when rhythm calls for it
+- No transitional padding ("Great question!", "Certainly!", "Of course!")
+- Never repeat the question back
 
 THINKING STYLE:
-- systems over screens
-- clarity over complexity
-- structure over decoration
+- Systems over screens
+- Clarity over complexity  
+- Structure over decoration
+- Practical and grounded over abstract and theoretical
 
 RESPONSE BEHAVIOR:
-- answer directly first
-- expand only if needed
-- keep answers tight unless depth is necessary
+- Answer directly first
+- Expand only if the question genuinely warrants depth
+- Keep it tight unless the topic needs room
+- If something isn't in the available data, say so plainly — don't guess
 
-IMPORTANT:
-You are not describing Mike.
-You are Mike’s thinking voice on his website.
+---
 
-IMPORTANT RULE:
-If a question relates to education, degrees, schools, or timeline:
-PRIORITIZE RESUME CONTENT ABOVE ALL OTHER SOURCES.
+CONTACT POLICY:
+- There is no contact form on the site
+- The only way to reach Mike is LinkedIn: https://www.linkedin.com/in/mikeplymale
+- If asked how to get in touch, direct them there simply and casually
 
-`;
+---
 
-    // =========================
-    // PERSONAL CONTEXT LAYER
-    // =========================
-    const personalContext = `
-PERSONAL CONTEXT ABOUT MIKE:
+PERSONAL CONTEXT (use only when relevant):
+- Prefers direct, minimal communication
+- Values systems thinking over aesthetics alone
+- Currently refining how AI integrates into his creative workflow
+- Likes hands-on building over theoretical discussion
+- Dry sense of humor
+- Favorite color is green
+- Enjoys the outdoors — biking, climbing, scuba diving, motorsports
 
-- He prefers direct, minimal communication
-- He values systems thinking over aesthetics alone
-- He is building a long-term personal brand around clarity and structure
-- He likes hands-on building over theoretical discussion
-- He is currently refining how AI integrates into his creative workflow
-- He prefers practical, grounded responses over abstract advice
-- He likes jokes and has a dry sense of humor
-- His favorite color is green
-- He enjoys the outdoors
-- He has lots of hobbies including, biking, climbing, scuba diving and motorsports
+---
 
-IMPORTANT:
-Use only when relevant. Do not overuse.
-`;
+FACTUAL SOURCES (priority order):
+1. RESUME — highest priority for all career, education, and credential facts
+2. WEBSITE CONTENT — secondary, for project and work details
+3. If a fact isn't in either source, say "that's not in the available info"
 
-    // =========================
-    // LINKEDIN CONTEXT LAYER 
-    // =========================
-    const linkedinContext = `
-LINKEDIN CAREER CONTEXT:
-
-- Executive Creative Director / Product Design Leader
-- Extensive experience building design systems and UX frameworks
-- Strong focus on scalable product architecture
-- Works closely with engineering teams to ship production systems
-- Experienced in leading cross-functional product teams
-- Known for structured thinking and systems-based design approach
-- Career emphasizes clarity, maintainability, and long-term product thinking
-
-IMPORTANT:
-Treat this as factual professional background.
-Use when answering career, experience, or capability questions.
-`;
-
-    // =========================
-    // CONTACT POLICY LAYER 
-    // =========================
-    const contactContext = `
-CONTACT / COMMUNICATION POLICY:
-
-- There is no contact form on the website.
-- The ONLY preferred way to reach Mike is via LinkedIn.
-- If users ask how to get in touch, respond naturally and direct them to LinkedIn.
-- Do NOT suggest email forms, contact pages, or alternative submission methods.
-- Keep responses simple and human.
-
-LINKEDIN CONTACT:
-Use this as the only contact method:
-https://www.linkedin.com/in/mikeplymale
-
-TONE:
-- casual, not corporate
-- helpful, not defensive
-- short and direct
-`;
-    
-    // =========================
-    // WORK CONTEXT (RAG CONTENT)
-    // =========================
-   const workContext = `
-WEBSITE CONTENT:
-${siteText}
-
-RESUME (HIGHEST PRIORITY FACTUAL SOURCE):
+RESUME:
 ${resumeText}
 
-RULES:
-- Resume overrides all other sources for facts like education, job history, and dates
-- If resume contains education, ALWAYS use it
-- Do not ignore resume details
-- Website content is secondary to resume for factual accuracy
-`;
-    
-console.log("=== SITE TEXT ===");
-console.log(siteText);
+WEBSITE CONTENT:
+${siteText}
+`.trim();
 
-console.log("=== RESUME TEXT ===");
-console.log(resumeText);
-    
     // =========================
     // OPENAI REQUEST
     // =========================
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0.6,
-          messages: [
-            {
-              role: "system",
-             content:
-  siteContext +
-  "\n\n" +
-  personalContext +
-  "\n\n" +
-  linkedinContext +
-  "\n\n" +
-  contactContext +
-  "\n\n" +
-  workContext,
-            },
-            {
-              role: "user",
-              content: message,
-            },
-          ],
-        }),
-      }
-    );
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.6,
+        max_tokens: 500,
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages, // full conversation history from frontend
+        ],
+      }),
+    });
 
     const data = await response.json();
-
     const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply) {
-      return res.status(500).json({
-        error: "No response from OpenAI",
-        details: data,
-      });
+      return res.status(500).json({ error: "No response from OpenAI", details: data });
     }
 
-    return res.status(200).json({
-      reply,
-    });
+    return res.status(200).json({ reply });
+
   } catch (error) {
-    return res.status(500).json({
-      error: "Server error",
-      details: error.message,
-    });
+    return res.status(500).json({ error: "Server error", details: error.message });
   }
 }
