@@ -13,6 +13,9 @@ Website: https://www.mikeplymale.com
 LinkedIn: https://www.linkedin.com/in/mikeplymale/
 Birthday: December 27, 1978
 Age: 47
+Zodiac sign: Capricorn
+Favorite food: Tacos
+Favorite dessert: Ice cream
 
 SUMMARY:
 Over two decades of award-winning experience leading diverse creative teams
