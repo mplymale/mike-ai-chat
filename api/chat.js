@@ -10,12 +10,22 @@ export default async function handler(req, res) {
 
   try {
     const { messages } = req.body;
-
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "No messages provided" });
     }
 
-    // Fetch live site pages
+    // =========================
+    // ANALYTICS — logs to Vercel dashboard
+    // View at: vercel.com > your project > Logs
+    // =========================
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === "user") {
+      console.log(`[QUESTION] ${new Date().toISOString()} — "${lastMessage.content}"`);
+    }
+
+    // =========================
+    // FETCH LIVE SITE PAGES
+    // =========================
     let siteText = "";
     try {
       const urls = [
@@ -49,6 +59,9 @@ export default async function handler(req, res) {
       console.error("Site fetch failed:", err.message);
     }
 
+    // =========================
+    // SYSTEM PROMPT
+    // =========================
     const systemPrompt = `
 You are the voice of Mike Plymale's personal website — a direct extension of his thinking.
 
@@ -78,6 +91,7 @@ RESPONSE BEHAVIOR:
 - Expand only if the question genuinely warrants depth
 - Keep it tight unless the topic needs room
 - If something isn't in the available data, say so plainly — don't guess
+- You may use markdown for bold, lists, or links when it improves clarity
 
 CONTACT POLICY:
 - There is no contact form on the site
@@ -103,36 +117,31 @@ ${resumeText}
 
 WEBSITE CONTENT:
 ${siteText}
-
----
-
-RESPONSE FORMAT:
-You must always respond with a valid JSON object in this exact shape:
-{
-  "reply": "your response here",
-  "suggestions": ["short follow-up question", "short follow-up question", "short follow-up question"]
-}
-
-SUGGESTIONS RULES:
-- Always return exactly 3 suggestions
-- Each suggestion should be a short, natural follow-up question a visitor might actually ask next
-- Base them on what was just discussed — make them feel like a logical next step
-- Keep each one under 8 words
-- Do not repeat questions already asked in the conversation
-- Do not use quotes inside suggestion text
 `.trim();
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // =========================
+    // SSE HEADERS — enables streaming
+    // =========================
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    // =========================
+    // STREAM REPLY FROM OPENAI (gpt-4o)
+    // =========================
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         temperature: 0.6,
-        max_tokens: 600,
-        response_format: { type: "json_object" },
+        max_tokens: 500,
+        stream: true,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -140,29 +149,74 @@ SUGGESTIONS RULES:
       }),
     });
 
-    const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content;
+    const reader = openaiRes.body.getReader();
+    const decoder = new TextDecoder();
+    let fullReply = "";
 
-    if (!raw) {
-      return res.status(500).json({ error: "No response from OpenAI", details: data });
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
+
+      for (const line of lines) {
+        const data = line.slice(6);
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          const token = parsed.choices[0]?.delta?.content || "";
+          if (token) {
+            fullReply += token;
+            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+          }
+        } catch {}
+      }
     }
 
-    let reply = "";
+    // =========================
+    // SUGGESTIONS — separate lightweight call after reply
+    // Uses gpt-4o-mini to keep this fast and cheap
+    // =========================
     let suggestions = [];
-
     try {
-      const parsed = JSON.parse(raw);
-      reply = parsed.reply || "";
+      const suggestRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.7,
+          max_tokens: 120,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: `You generate follow-up questions for a portfolio chatbot. Based on the exchange below, return exactly 3 short follow-up questions a visitor might ask next. Each must be under 8 words. No quotes inside question text. Return only JSON: {"suggestions": ["q1", "q2", "q3"]}`,
+            },
+            { role: "user", content: lastMessage?.content || "" },
+            { role: "assistant", content: fullReply },
+          ],
+        }),
+      });
+      const suggestData = await suggestRes.json();
+      const parsed = JSON.parse(suggestData.choices[0]?.message?.content || "{}");
       suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : [];
-    } catch {
-      // If JSON parse fails, fall back to raw text with no suggestions
-      reply = raw;
-      suggestions = [];
+    } catch (err) {
+      console.error("Suggestions failed:", err.message);
     }
 
-    return res.status(200).json({ reply, suggestions });
+    // Send done signal with suggestions
+    res.write(`data: ${JSON.stringify({ done: true, suggestions })}\n\n`);
+    res.end();
 
   } catch (error) {
-    return res.status(500).json({ error: "Server error", details: error.message });
+    console.error("Chat handler error:", error.message);
+    try {
+      res.write(`data: ${JSON.stringify({ error: "Something went wrong." })}\n\n`);
+      res.end();
+    } catch {}
   }
 }
