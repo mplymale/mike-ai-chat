@@ -1,6 +1,6 @@
 // /api/_resumeData.js
 // Shared data imported by chat.js and context.js
-// No HTTP call needed — single source of truth
+// Single source of truth — update here when resume changes
 
 export const resumeText = `
 === MIKE PLYMALE — RESUME (SOURCE OF TRUTH) ===
@@ -40,22 +40,74 @@ Group Design Director, Sr. Manager | Sagepath Reply | Atlanta, GA | 03/2020 – 
   - Portfolio of 15+ retail clients with 325% average sales increase
 
 Creative Director, Sr. Agency Manager | Perficient Digital | Atlanta, GA | 11/2017 – 03/2020
-  - Co-created streamlined processes for strategy, design, and UX
+  - Worked as an extended part of clients' teams, co-creating processes for strategy, design, and UX
+  - Collaborated with executive leadership to develop and execute creative strategies
+  - Led expansion of client base through strategic design solutions and relationship building
+  - Championed user-centric design with integrated user research and testing
   - 20% reduction in project turnaround time
   - 20% increase in client conversion rates
-  - Championed user-centric design with integrated user research and testing
+  - Actively contributed creative insights to client pitches and business development
 
 Creative Director, Experience Architecture & Strategy | State Farm | Atlanta, GA | 10/2015 – 11/2017
-  - Led creative strategy in the CROM (Customer Retention and Opportunity Management) vertical
-  - Managed governance for the entire UX practice
-  - Championed data-driven insights and user research to inform design
+  - Led creative strategy oversight within the CROM (Customer Retention and Opportunity Management) vertical
+  - Guided governance for the entire UX practice, ensuring adherence to user-centered design standards
+  - Championed data-driven insights and user research to optimize UX solutions
+  - Provided leadership and mentorship to UX teams, fostering a culture of innovation and collaboration
+  - Actively participated in strategic planning sessions and built stakeholder relationships
+  - Streamlined internal processes for improved efficiency and scalability in UX design and delivery
   - Co-led functional grooming sessions for Salesforce products
 
 Associate Creative Director | Sagepath | Atlanta, GA | 04/2014 – 10/2015
   - Provided strategic creative direction and management for the creative team
-  - Restructured UX and design workflows for improved efficiency
+  - Restructured and organized UX and design workflows to optimize efficiency and quality
+  - Led development and execution of multiple campaigns aligned with client objectives
   - Spearheaded new business pitches and client acquisition
   - Designed the Floorvana Native App for Shaw Floors — won a Davey Award
+
+Senior Art Director | JWT Atlanta | Atlanta, GA | 03/2011 – 04/2014
+  - Led redesign of Marines.com, USMC mobile, Xbox BDE, and various native apps for the Marine Corps account
+  - Created award-winning digital experiences earning seven industry accolades including Addy, Webby, and W3 awards
+  - Collaborated with cross-functional teams to ensure successful execution of design projects
+  - Defined digital processes and fostered collaboration between development and creative teams
+  - Provided strategic design direction leveraging industry trends and best practices
+
+Art Director | Definition 6 | Atlanta, GA | 07/2010 – 02/2011
+  - Provided strategic direction for design initiatives from concept through delivery
+  - Conceptualized and executed designs aligned with business objectives
+  - Collaborated with cross-functional teams to translate ideas into compelling visual experiences
+  - Contributed to the successful launch of innovative products and campaigns
+
+Art Director | LBi | Atlanta, GA | 02/2008 – 06/2010
+  - Crafted interactive designs delivering engaging and immersive digital experiences
+  - Won an Addy Award for the Home Depot Racing website
+  - Led UX design efforts developing intuitive, user-friendly interfaces
+  - Produced dynamic motion graphics and animations for marketing campaigns
+  - Ensured consistent branding across all visual materials
+
+Art Director | OneUp Innovations | Atlanta, GA | 07/2007 – 02/2008
+  - Contributed to the development and design of in-house products
+  - Created and led marketing campaigns to drive product awareness and engagement
+  - Directed product photoshoots for high-quality visual representation
+  - Developed animations and interactive content for marketing materials
+  - Collaborated with executive leadership to align design strategies with company goals
+
+Creative Developer | American Greetings Interactive | 07/2006 – 07/2007
+  - Created animations for digital greeting cards across AG's digital properties
+  - Developed corporate branding and design ensuring cohesive visual identity
+  - Led internal branding and development projects
+  - Produced digital storytelling content for various platforms
+
+Graphic Designer | Gevity | 01/2005 – 07/2006
+  - Produced designs supporting internal communications and external marketing
+  - Created print materials including brochures, posters, and flyers
+  - Designed an award-winning annual report that earned the Heidelberg Award for Best Annual Report
+  - Ensured brand consistency across all design materials
+
+Graphic Designer | Genuity Group, LLC | 2003 – 2005
+  - Produced print and interactive designs spanning brochures to website interfaces
+  - Crafted branding campaigns shaping visual identities for target audiences
+  - Integrated photography into design work to elevate projects
+  - Maintained brand consistency across all design materials and platforms
 
 EDUCATION:
   - Bachelor of Fine Arts — Graphic and Interactive Communications, Ringling College of Art & Design, Sarasota, FL (2002 – 2006)
