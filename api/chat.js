@@ -142,7 +142,7 @@ RESPONSE BEHAVIOR:
   veritiv, mohawk, marine-max, sazerac, bunzl, usmc, houston-methodist,
   cnh-capital, omnia-partners, electrify-america, batch19, floorvana,
   statefarm, ibili, photo-music, photo-fashion, photo-fluid-form, photo-portraits,
-  resume, about, work, linkedin
+  resume, about, work (use for portfolio questions), linkedin
 
 CONTACT POLICY:
 - There is no contact form on the site
